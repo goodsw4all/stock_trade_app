@@ -1,7 +1,12 @@
+use eframe::{
+    egui::{self, RichText},
+    epaint::{Color32, FontId},
+};
+
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
-pub struct TemplateApp {
+pub struct StockTradeApp {
     // Example stuff:
     label: String,
 
@@ -10,17 +15,17 @@ pub struct TemplateApp {
     value: f32,
 }
 
-impl Default for TemplateApp {
+impl Default for StockTradeApp {
     fn default() -> Self {
         Self {
             // Example stuff:
-            label: "Hello World!".to_owned(),
+            label: "Stock Tradi ng".to_owned(),
             value: 2.7,
         }
     }
 }
 
-impl TemplateApp {
+impl StockTradeApp {
     /// Called once before the first frame.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // This is also where you can customized the look at feel of egui using
@@ -36,7 +41,7 @@ impl TemplateApp {
     }
 }
 
-impl eframe::App for TemplateApp {
+impl eframe::App for StockTradeApp {
     /// Called by the frame work to save state before shutdown.
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
         eframe::set_value(storage, eframe::APP_KEY, self);
@@ -46,11 +51,6 @@ impl eframe::App for TemplateApp {
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         let Self { label, value } = self;
-
-        // Examples of how to create different panels and windows.
-        // Pick whichever suits you.
-        // Tip: a good default choice is to just keep the `CentralPanel`.
-        // For inspiration and more examples, go to https://emilk.github.io/egui
 
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             // The top panel is often a good place for a menu bar:
@@ -90,7 +90,18 @@ impl eframe::App for TemplateApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
 
-            ui.heading("eframe template");
+            ui.heading("Stock Trading with Quant method");
+            ui.label(
+                RichText::new("Test Large Text")
+                    .font(FontId::proportional(40.0))
+                    .color(Color32::RED),
+            );
+
+            ui.horizontal(|ui| {
+                ui.label("Your name: ");
+                ui.text_edit_singleline(&mut self.label);
+            });
+
             ui.hyperlink("https://github.com/emilk/eframe_template");
             ui.add(egui::github_link_file!(
                 "https://github.com/emilk/eframe_template/blob/master/",
@@ -99,7 +110,7 @@ impl eframe::App for TemplateApp {
             egui::warn_if_debug_build(ui);
         });
 
-        if false {
+        if true {
             egui::Window::new("Window").show(ctx, |ui| {
                 ui.label("Windows can be moved by dragging them.");
                 ui.label("They are automatically sized based on contents.");
