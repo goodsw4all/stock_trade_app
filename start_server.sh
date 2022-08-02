@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 
-PORT=8080
+PORT=3000
 
 # Starts a local web-server that serves the contents of the `doc/` folder,
 # which is the folder to where the web version is compiled.
