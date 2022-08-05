@@ -21,6 +21,9 @@ eframe = { version = "0.18.0", features = ["persistence"] }
 serde = { version = "1", features = [
     "derive",
 ] } # You only need this if you want app persistence
+ehttp = "0.2.0"
+serde_json = "1.0"
+reqwest = { version = "0.11", features = ["json", "blocking"] }
 
 # Local Libraries
 # stock_trader = { path = "../stock_trade_lib" }

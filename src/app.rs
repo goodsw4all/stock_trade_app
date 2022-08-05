@@ -1,7 +1,13 @@
+// use crate::trade::order;
+
+use reqwest::blocking;
+use reqwest::header::{self, HeaderName, HeaderValue};
+
 use eframe::{
     egui::{self, RichText},
     epaint::{Color32, FontId},
 };
+use egui::TextStyle;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -9,6 +15,7 @@ use eframe::{
 pub struct StockTradeApp {
     // Example stuff:
     label: String,
+    response: String,
 
     // this how you opt-out of serialization of a member
     #[serde(skip)]
@@ -20,6 +27,7 @@ impl Default for StockTradeApp {
         Self {
             // Example stuff:
             label: "Stock Tradi ng".to_owned(),
+            response: "Empty".to_owned(),
             value: 2.7,
         }
     }
@@ -50,16 +58,25 @@ impl eframe::App for StockTradeApp {
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        let Self { label, value } = self;
+        let Self {
+            label,
+            response,
+            value,
+        } = self;
+        egui::TopBottomPanel::top("wrap_app_top_bar").show(ctx, |ui| {
+            egui::trace!(ui);
+            ui.horizontal_wrapped(|ui| {
+                ui.visuals_mut().button_frame = false;
+                egui::widgets::global_dark_light_mode_switch(ui);
 
-        egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            // The top panel is often a good place for a menu bar:
-            egui::menu::bar(ui, |ui| {
-                ui.menu_button("File", |ui| {
-                    if ui.button("Quit").clicked() {
-                        frame.quit();
-                    }
-                });
+                ui.separator();
+                if ui.button("Button1").clicked() {
+                    println!("Button1 clicked")
+                }
+                ui.separator();
+                if ui.button("Button2").clicked() {
+                    println!("Button2 clicked")
+                }
             });
         });
 
@@ -72,13 +89,14 @@ impl eframe::App for StockTradeApp {
             });
 
             ui.add(egui::Slider::new(value, 0.0..=10.0).text("value"));
+
             if ui.button("Increment").clicked() {
                 *value += 1.0;
             }
 
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::RIGHT), |ui| {
                 ui.horizontal(|ui| {
-                    ui.spacing_mut().item_spacing.x = 0.0;
+                    ui.spacing_mut().item_spacing.x = 10.0;
                     ui.label("powered by ");
                     ui.hyperlink_to("egui", "https://github.com/emilk/egui");
                     ui.label(" and ");
@@ -89,25 +107,48 @@ impl eframe::App for StockTradeApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
-
             ui.heading("Stock Trading with Quant method");
             ui.label(
-                RichText::new("Test Large Text")
+                RichText::new("Qunant Rest API Test")
                     .font(FontId::proportional(40.0))
-                    .color(Color32::RED),
+                    .color(Color32::DARK_RED),
+            );
+            let mut temp = String::from("TEST");
+            if ui.button("Button Test").clicked() {
+                println!("Button clicked");
+
+                let client = reqwest::blocking::Client::new();
+                let res: blocking::Response;
+
+                res = client
+                    .get("http://127.0.0.1:8080/stocks/list")
+                    .send()
+                    .unwrap();
+
+                self.response = match res.status() {
+                    reqwest::StatusCode::OK => {
+                        // println!("Response Headers:\n{:#?}", res.headers());
+                        let v: serde_json::Value = serde_json::from_str(&res.text().unwrap()).unwrap();
+                        println!("{:?}", v);
+                        v.to_string()
+                    }
+                    _ => "no Data available".to_owned(),
+                };
+            }
+
+            ui.label(
+                RichText::new(&self.response)
+                    .text_style(TextStyle::Monospace)
+                    .color(Color32::DARK_BLUE),
             );
 
-            ui.horizontal(|ui| {
-                ui.label("Your name: ");
-                ui.text_edit_singleline(&mut self.label);
-            });
-
-            ui.hyperlink("https://github.com/emilk/eframe_template");
-            ui.add(egui::github_link_file!(
-                "https://github.com/emilk/eframe_template/blob/master/",
-                "Source code."
-            ));
-            egui::warn_if_debug_build(ui);
+            ui.label(
+                RichText::new("‼ Debug build ‼")
+                    .text_style(TextStyle::Monospace)
+                    .color(Color32::RED),
+            )
+            .on_hover_text("egui was compiled with debug assertions enabled.");
+            // egui::warn_if_debug_build(ui);
         });
 
         if true {
@@ -118,5 +159,7 @@ impl eframe::App for StockTradeApp {
                 ui.label("You would normally chose either panels OR windows.");
             });
         }
+
+        // order::hello();
     }
 }
